@@ -1,0 +1,732 @@
+
+<!DOCTYPE html>
+<style>
+  :root{--bg:#0f1117;--bg2:#161b27;--bg3:#1e2535;--bg4:#252d3f;--border:#2d3748;--border2:#3d4f6e;--text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;--accent:#6366f1;--accent2:#818cf8;--green:#10b981;--green2:#34d399;--yellow:#f59e0b;--yellow2:#fbbf24;--red:#ef4444;--red2:#f87171;--blue:#3b82f6;--blue2:#60a5fa;--teal:#14b8a6;--r:8px;--r2:12px}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);height:600px;overflow:hidden;font-size:13px}
+  .app{display:grid;grid-template-columns:240px 1fr;grid-template-rows:48px 1fr;height:600px}
+  .topbar{grid-column:1/-1;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:12px}
+  .logo{font-weight:800;font-size:16px;display:flex;align-items:center;gap:8px}
+  .logo-badge{background:var(--accent);width:24px;height:24px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;color:#fff}
+  .topbar-right{margin-left:auto;display:flex;gap:8px;align-items:center}
+  .pill{background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:3px 10px;font-size:11px;color:var(--text2);display:flex;align-items:center;gap:5px}
+  .dot{width:6px;height:6px;border-radius:50%}
+  .dot-g{background:var(--green);box-shadow:0 0 5px var(--green)}
+  .dot-y{background:var(--yellow)}
+  .sidebar{background:var(--bg2);border-right:1px solid var(--border);overflow-y:auto;padding:12px}
+  .main{overflow-y:auto;display:flex;flex-direction:column}
+  .slabel{font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin:0 0 8px}
+  .scard{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:10px;cursor:pointer;margin-bottom:6px;transition:all .15s}
+  .scard:hover{border-color:var(--border2)}
+  .scard.active{border-color:var(--accent);background:rgba(99,102,241,.1)}
+  .scard-title{font-size:12px;font-weight:700;margin-bottom:4px}
+  .scard-meta{font-size:10px;color:var(--text2);display:flex;gap:5px;align-items:center}
+  .sbadge{padding:1px 5px;border-radius:3px;font-size:9px;font-weight:700}
+  .sc{background:rgba(239,68,68,.15);color:var(--red2)}
+  .sh{background:rgba(245,158,11,.15);color:var(--yellow2)}
+  .sm{background:rgba(59,130,246,.15);color:var(--blue2)}
+  .stg-item{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:var(--r);cursor:pointer;margin-bottom:2px;font-size:11px;color:var(--text2);transition:all .15s}
+  .stg-item:hover{background:var(--bg3);color:var(--text)}
+  .stg-item.done{color:var(--green2)}
+  .stg-item.running{color:var(--yellow2)}
+  .stg-item.cur{background:rgba(99,102,241,.12);color:var(--accent2)}
+  .snum{width:18px;height:18px;border-radius:50%;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;background:var(--bg4);color:var(--text3);flex-shrink:0}
+  .stg-item.done .snum{background:rgba(16,185,129,.2);color:var(--green2)}
+  .stg-item.running .snum{background:rgba(245,158,11,.2);color:var(--yellow2);animation:pu 1s ease-in-out infinite}
+  .stg-item.cur .snum{background:rgba(99,102,241,.25);color:var(--accent2)}
+  @keyframes pu{0%,100%{opacity:1}50%{opacity:.4}}
+  @keyframes bn{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-5px)}}
+  .content-head{padding:16px 20px 0;display:flex;align-items:center;justify-content:space-between}
+  .content-body{padding:12px 20px;flex:1}
+  .card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:16px;margin-bottom:12px}
+  .card-title{font-size:11px;font-weight:700;color:var(--text2);margin-bottom:10px;display:flex;align-items:center;gap:6px;letter-spacing:.02em}
+  .mbox{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:10px}
+  .mlabel{font-size:10px;color:var(--text3);margin-bottom:4px}
+  .mval{font-size:17px;font-weight:800}
+  .msub{font-size:10px;color:var(--text3);margin-top:2px}
+  .red{color:var(--red2)}.yellow{color:var(--yellow2)}.green{color:var(--green2)}
+  .log-block{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:10px;font-family:monospace;font-size:10.5px;line-height:1.7;max-height:160px;overflow-y:auto}
+  .le{color:var(--red2)}.lw{color:var(--yellow2)}.li{color:var(--blue2)}.ld{color:var(--text3)}.lt{color:var(--text3);margin-right:6px}
+  .hyp{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px;margin-bottom:7px;display:flex;gap:10px;align-items:flex-start}
+  .hyp-r{font-size:18px;font-weight:900;color:var(--text3);min-width:24px}
+  .hyp-r.r1{color:var(--yellow2)}
+  .hyp-title{font-size:12px;font-weight:700;margin-bottom:3px}
+  .hyp-desc{font-size:11px;color:var(--text2);line-height:1.5}
+  .sbar-w{flex:1;background:var(--bg4);border-radius:4px;height:5px;overflow:hidden}
+  .sbar{height:5px;border-radius:4px;transition:width .6s}
+  .slv{font-size:10px;font-weight:700;min-width:30px;text-align:right}
+  .action-box{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:12px;margin-bottom:8px}
+  .action-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+  .action-title{font-size:12px;font-weight:700}
+  .badges{display:flex;gap:4px}
+  .badge{padding:1px 6px;border-radius:3px;font-size:9px;font-weight:700}
+  .ba{background:rgba(16,185,129,.15);color:var(--green2)}
+  .bh{background:rgba(245,158,11,.15);color:var(--yellow2)}
+  .be{background:rgba(239,68,68,.15);color:var(--red2)}
+  .bl{background:rgba(20,184,166,.15);color:var(--teal)}
+  .bm{background:rgba(245,158,11,.15);color:var(--yellow2)}
+  .action-desc{font-size:11px;color:var(--text2);margin-bottom:7px;line-height:1.5}
+  .action-cmd{background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:6px 10px;font-family:monospace;font-size:10px;color:var(--green2);overflow-x:auto;white-space:nowrap}
+  .run-btn{background:linear-gradient(135deg,var(--accent),#8b5cf6);color:#fff;border:none;border-radius:var(--r);padding:8px 20px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .2s}
+  .run-btn:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 6px 20px rgba(99,102,241,.4)}
+  .run-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+  .progress-bar{width:140px;height:3px;background:var(--bg4);border-radius:2px;overflow:hidden}
+  .pfill{height:3px;background:linear-gradient(90deg,var(--accent),#8b5cf6);border-radius:2px;transition:width .4s}
+  .stg-view{display:none}
+  .stg-view.vis{display:block}
+  .thinking{display:flex;align-items:center;gap:8px;padding:10px 14px;background:rgba(99,102,241,.06);border:1px solid rgba(99,102,241,.15);border-radius:var(--r);margin-bottom:10px}
+  .td{width:5px;height:5px;border-radius:50%;background:var(--accent2);animation:bn 1.2s ease-in-out infinite}
+  .td:nth-child(2){animation-delay:.2s}
+  .td:nth-child(3){animation-delay:.4s}
+  .gwbox{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
+  .gwm{background:var(--bg3);border-radius:var(--r);padding:14px;text-align:center}
+  .gwv{font-size:28px;font-weight:900;margin-bottom:3px}
+  .gwl{font-size:10px;color:var(--text3)}
+  .dbanner{border-radius:var(--r);padding:12px 16px;display:flex;align-items:center;gap:12px;margin-bottom:12px}
+  .dauto{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3)}
+  .dhuman{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3)}
+  .desc{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3)}
+  .dtitle{font-size:13px;font-weight:700;margin-bottom:2px}
+  .ddesc{font-size:11px;color:var(--text2)}
+  .exec-step{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
+  .exec-step:last-child{border:none}
+  .ei{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;margin-top:1px}
+  .ei.done{background:rgba(16,185,129,.2);color:var(--green2)}
+  .ei.running{background:rgba(245,158,11,.2);color:var(--yellow2);animation:pu .8s ease-in-out infinite}
+  .ei.pending{background:var(--bg4);color:var(--text3)}
+  .ei-title{font-size:12px;font-weight:700;margin-bottom:2px}
+  .ei-detail{font-size:10px;color:var(--text2)}
+  .hitl-wrap{background:rgba(245,158,11,.05);border:1px solid rgba(245,158,11,.2);border-radius:var(--r2);padding:16px;margin-bottom:12px}
+  .hitl-btns{display:flex;gap:8px;margin-top:10px}
+  .btn{padding:7px 16px;border-radius:var(--r);border:none;font-size:11px;font-weight:700;cursor:pointer;transition:all .15s}
+  .btn-ok{background:var(--green);color:#fff}
+  .btn-no{background:var(--bg4);color:var(--text2);border:1px solid var(--border)}
+  .btn-pri{background:var(--accent);color:#fff}
+  .audit-row{display:flex;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);font-size:11px}
+  .at{color:var(--text3);font-family:monospace;min-width:70px}
+  .as{color:var(--accent2);min-width:160px}
+  .am{color:var(--text2);flex:1}
+  .fmet{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)}
+  .flabel{font-size:11px;color:var(--text2);min-width:180px}
+  .fb-w{flex:1;background:var(--bg4);border-radius:4px;height:7px}
+  .fb{height:7px;border-radius:4px}
+  .fv{font-size:11px;font-weight:700;min-width:36px;text-align:right}
+  .mgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px}
+  .mm{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:12px}
+  .mm-label{font-size:10px;color:var(--text3);margin-bottom:6px}
+  .mm-val{font-size:15px;font-weight:800}
+  .policy-item{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);margin-bottom:6px}
+  .pi{font-size:14px}
+  .pt{flex:1;font-size:11px}
+  .pr{font-size:10px;font-weight:700}
+  .pp{color:var(--green2)}.pw{color:var(--yellow2)}.pf{color:var(--red2)}
+  .tsg{background:rgba(99,102,241,.07);border-left:3px solid var(--accent);padding:7px 10px;border-radius:0 5px 5px 0;margin-bottom:7px}
+  .tsg-t{font-weight:700;color:var(--accent2);font-size:11px;margin-bottom:3px}
+  .ctx-g{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .ctx-i{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:10px}
+  .ctx-l{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+  .welcome{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:20px;text-align:center}
+  .welcome h2{font-size:22px;font-weight:800;background:linear-gradient(135deg,var(--accent2),#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:10px}
+  .welcome p{font-size:13px;color:var(--text2);max-width:400px;line-height:1.7;margin-bottom:20px}
+  .wsteps{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-width:480px;margin-bottom:24px}
+  .ws{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:12px}
+  .wsn{font-size:22px;font-weight:900;color:var(--accent);margin-bottom:6px}
+  .wst{font-size:11px;color:var(--text2);line-height:1.5}
+  ::-webkit-scrollbar{width:5px;height:5px}
+  ::-webkit-scrollbar-track{background:transparent}
+  ::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px}
+  .mgrid4{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+</style>
+
+<div class="app" id="app">
+<header class="topbar">
+  <div class="logo"><div class="logo-badge">A</div>AgentOps</div>
+  <span style="font-size:11px;color:var(--text3)">Production Incident AI</span>
+  <div class="topbar-right">
+    <div class="pill"><div class="dot dot-y" id="mdot"></div><span id="mlabel">mistral:7b (Ollama)</span></div>
+    <div class="pill"><div class="dot dot-g"></div><span id="pstatus">Ready</span></div>
+  </div>
+</header>
+
+<aside class="sidebar">
+  <div class="slabel" style="margin-bottom:8px">Incidents</div>
+  <div id="sclist"></div>
+  <div class="slabel" style="margin-top:14px;margin-bottom:8px">Pipeline</div>
+  <div id="stgnav"></div>
+</aside>
+
+<main class="main" id="main">
+  <div id="welcome" class="welcome">
+    <h2>AgentOps Demo</h2>
+    <p>AI-powered production incident triage, root cause analysis, and autonomous remediation — 13-stage pipeline.</p>
+    <div class="wsteps">
+      <div class="ws"><div class="wsn">1</div><div class="wst">Pick an incident scenario</div></div>
+      <div class="ws"><div class="wsn">2</div><div class="wst">Click Run Pipeline</div></div>
+      <div class="ws"><div class="wsn">3</div><div class="wst">Step through each AI stage</div></div>
+    </div>
+    <div style="background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.2);border-radius:var(--r2);padding:12px 16px;max-width:420px;font-size:11px;color:var(--text2);line-height:1.7">
+      <strong style="color:var(--accent2)">Live LLM:</strong> Connects to local Ollama (mistral:7b). Falls back to simulation with pre-computed realistic responses for demo.
+    </div>
+  </div>
+
+  <div id="pipview" style="display:none;height:100%;overflow-y:auto">
+    <div class="content-head">
+      <div>
+        <div style="font-size:17px;font-weight:800" id="ititle">Incident</div>
+        <div style="font-size:11px;color:var(--text2);margin-top:2px" id="isubtitle"></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="progress-bar"><div class="pfill" id="pfill" style="width:0%"></div></div>
+        <button class="run-btn" id="rbtn" onclick="runPipeline()"><span id="ricon">▶</span><span id="rtxt">Run Pipeline</span></button>
+      </div>
+    </div>
+    <div class="content-body">
+      <div class="stg-view" id="s1"></div>
+      <div class="stg-view" id="s2"></div>
+      <div class="stg-view" id="s3"></div>
+      <div class="stg-view" id="s4"></div>
+      <div class="stg-view" id="s5"></div>
+      <div class="stg-view" id="s6"></div>
+      <div class="stg-view" id="s7"></div>
+      <div class="stg-view" id="s8"></div>
+      <div class="stg-view" id="s9"></div>
+      <div class="stg-view" id="s10"></div>
+      <div class="stg-view" id="s11"></div>
+      <div class="stg-view" id="s12"></div>
+      <div class="stg-view" id="s13"></div>
+    </div>
+  </div>
+</main>
+</div>
+
+<script>
+const SC=[
+{id:'db',title:'DB Connection Pool Exhausted',svc:'payments-service',sev:'critical',cat:'Database',
+metrics:[{l:'Error Rate',v:'34%',c:'red',s:'↑ from 0.1%'},{l:'P99 Latency',v:'8.4s',c:'red',s:'↑ from 180ms'},{l:'DB Connections',v:'500/500',c:'red',s:'Pool exhausted'},{l:'Queue Depth',v:'14,230',c:'red',s:'Growing'},{l:'Active Requests',v:'2,847',c:'yellow',s:'3x normal'},{l:'CPU',v:'23%',c:'green',s:'Normal'}],
+raw:`{\n  "alert_id": "ALT-20240425-0847",\n  "source": "datadog",\n  "severity": "CRITICAL",\n  "service": "payments-service",\n  "metric": "db.connections.active",\n  "current_value": 500,\n  "threshold": 500,\n  "message": "DB connection pool exhausted"\n}`,
+norm:`{\n  "signal_id": "SIG-a3f8c2d1",\n  "source": "datadog",\n  "severity": "critical",\n  "service": "payments-service",\n  "environment": "production",\n  "summary": "DB pool exhausted (500/500) — 34% error rate",\n  "ingestion_latency_ms": 312\n}`,
+logs:[{t:'08:47:11',l:'e',m:'HikariCP - Connection not available, request timed out after 30000ms'},{t:'08:47:12',l:'e',m:'FATAL: connection pool exhausted (active=500, idle=0, waiting=234)'},{t:'08:47:13',l:'e',m:'PaymentProcessor: SQLException - could not acquire connection'},{t:'08:47:14',l:'w',m:'Circuit breaker OPEN for db-primary'},{t:'08:47:15',l:'e',m:'847 transactions failed in last 60s'},{t:'08:47:16',l:'e',m:'Deadlock detected: PID 34521 waited for ShareLock on txn 8821043'},{t:'08:47:17',l:'w',m:'Retry queue depth: 14,230 (growing)'},{t:'08:47:18',l:'i',m:'Health check: UNHEALTHY - db connectivity failed'}],
+health:`service:   payments-service (pod: payments-7d4b9c-x9p2k)\nreplicas:  5/5 running\ncpu:       23% (normal)\ndb_pool:   500/500 EXHAUSTED\nlast_deploy: v3.4.1 @ 2024-04-25T06:12:00Z (2h 35m ago)\non_call:   @alex.chen`,
+tsgs:[{t:'DB Connection Pool Exhaustion Runbook',s:0.94,c:'Check long-running queries. Increase pool size temporarily. Kill idle connections. Check for connection leaks in recent deployments.'},{t:'HikariCP Tuning Guide',s:0.87,c:'maximumPoolSize default 10 — increase to 50-100 for high-traffic. connectionTimeout: 30s. Check keepAliveTime.'},{t:'Payment Service DB Failover Procedure',s:0.72,c:'If primary DB unavailable, promote read replica. Update connection string.'}],
+hist:[{id:'INC-2891',d:'2024-01-08',s:'Connection leak after new retry logic in PaymentProcessor — connections not returned on exception path.',r:'Fixed try-with-resources, deployed v2.8.5.'}],
+hyps:[{r:1,t:'Connection leak from v3.4.1 deployment',d:'v3.4.1 deployed 2h35m ago. Exception paths in new retry logic may not return connections to pool.',c:.88},{r:2,t:'Deadlock causing connection accumulation',d:'Deadlock detected in logs. Long-running transactions holding connections without releasing.',c:.71},{r:3,t:'Traffic spike exceeding pool capacity',d:'Active requests 3x normal. Pool size may be insufficient for current load.',c:.42}],
+reasoning:`[Agent] Analyzing aggregated context...
+
+Step 1 — Timeline correlation:
+  Deploy v3.4.1 @ 06:12 UTC → degradation began ~08:30 UTC (2h18m gap)
+  Gradual accumulation pattern → connection leak, not immediate regression.
+
+Step 2 — Log pattern:
+  "pool exhausted active=500 idle=0" → all 500 connections held, none returned
+  Classic connection leak signature.
+
+Step 3 — Historical match:
+  INC-2891: identical — connection leak in retry logic, fixed with try-with-resources
+  v3.4.1 changelog: "enhanced retry logic in PaymentProcessor" → HIGH CORRELATION
+
+Step 4 — Ruling out traffic spike:
+  CPU 23%, memory 67% → normal. Traffic spike would show elevated CPU.
+
+CONCLUSION: Connection leak in v3.4.1 PaymentProcessor retry logic.
+ACTION: Kill idle connections + increase pool temporarily + rollback v3.4.1.`,
+actions:[{t:'Increase DB pool size temporarily',d:'Emergency increase pool max 500→750 to restore capacity.',cmd:'kubectl set env deployment/payments-service HIKARI_MAX_POOL_SIZE=750 -n production',dec:'auto',risk:'low',c:.92},{t:'Kill orphaned idle connections',d:'Terminate connections idle >60s not properly released.',cmd:"psql -h db-primary -c \"SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE state='idle' AND query_start < now()-interval '60s';\"",dec:'auto',risk:'low',c:.89},{t:'Roll back to v3.4.0',d:'Roll back deployment that introduced the connection leak.',cmd:'kubectl rollout undo deployment/payments-service -n production',dec:'human',risk:'medium',c:.84}],
+dec:'human',
+mon:[{l:'Error Rate',b:'34%',a:'0.2%'},{l:'DB Connections',b:'500/500',a:'127/750'},{l:'P99 Latency',b:'8.4s',a:'210ms'},{l:'Queue Depth',b:'14,230',a:'0'}]},
+
+{id:'oom',title:'Memory Leak → OOM Crash Loop',svc:'recommendation-engine',sev:'critical',cat:'Memory',
+metrics:[{l:'Pod Restarts',v:'7',c:'red',s:'Last 30 min'},{l:'Memory',v:'98%',c:'red',s:'OOMKilled'},{l:'Error Rate',v:'61%',c:'red',s:'↑ from 0.3%'},{l:'Cache Hit',v:'8%',c:'red',s:'↓ from 89%'},{l:'Replicas',v:'1/4',c:'red',s:'3 OOMKilled'},{l:'CPU',v:'41%',c:'yellow',s:'Elevated (GC)'}],
+raw:`{\n  "alert_id": "ALT-20240425-1022",\n  "source": "kubernetes",\n  "signal_type": "pod_event",\n  "severity": "CRITICAL",\n  "service": "recommendation-engine",\n  "reason": "OOMKilled",\n  "message": "Container exceeded memory limit 2Gi",\n  "restart_count": 7\n}`,
+norm:`{\n  "signal_id": "SIG-b9e1f4a2",\n  "source": "kubernetes",\n  "signal_type": "pod_crash",\n  "severity": "critical",\n  "service": "recommendation-engine",\n  "summary": "Crash loop (7 restarts) — OOMKilled, 2Gi limit exceeded",\n  "ingestion_latency_ms": 198\n}`,
+logs:[{t:'10:18:42',l:'w',m:'Memory usage 85% - approaching limit (1.7Gi/2Gi)'},{t:'10:19:11',l:'w',m:'ML model cache growing: 847MB (unbounded)'},{t:'10:19:44',l:'e',m:'GC overhead limit exceeded - full GC taking >80% CPU time'},{t:'10:20:02',l:'e',m:'java.lang.OutOfMemoryError: Java heap space'},{t:'10:20:03',l:'e',m:'Container killed by OOM killer (exit code 137)'},{t:'10:21:30',l:'i',m:'Container restarted (restart #6)'},{t:'10:21:45',l:'w',m:'Cache warming started - loading 1.2M model embeddings'},{t:'10:22:11',l:'e',m:'OOMKilled again on restart #7'}],
+health:`service:   recommendation-engine\nreplicas:  1/4 (3 OOMKilled)\nmemory:    1.98Gi/2Gi (99%)\ncpu:       41% (GC overhead)\ncache:     unbounded ML model cache detected\nlast_deploy: v2.1.0 @ 2024-04-25T09:45:00Z (37m ago)\njvm_flags: -Xmx1800m\non_call:   @priya.sharma`,
+tsgs:[{t:'JVM OOM Crash Loop Recovery',s:0.96,c:'Increase memory limits. Add heap dump on OOM. Check for unbounded caches.'},{t:'ML Model Cache Eviction Policy',s:0.91,c:'CACHE_MAX_SIZE_MB must be set explicitly — default is unlimited. Set via env var.'},{t:'Kubernetes OOMKill Remediation',s:0.83,c:'Increase pod memory limit or reduce consumption. Scale up replicas to restore capacity.'}],
+hist:[{id:'INC-3087',d:'2024-02-20',s:'OOM on recommendation-engine due to unbounded Guava cache loading all user embeddings.',r:'Set CACHE_MAX_SIZE_MB=512, deployed fix in v1.9.2.'}],
+hyps:[{r:1,t:'Unbounded ML cache after v2.1.0 deploy',d:'v2.1.0 deployed 37m ago. Logs show cache growing without bound. TSG: CACHE_MAX_SIZE_MB must be set — missing in new deployment.',c:.93},{r:2,t:'JVM heap too small for workload',d:'-Xmx1800m leaves 200MB for native. Combined with large cache, heap exhausted.',c:.67},{r:3,t:'Memory leak in new model serving code',d:'v2.1.0 introduced ONNX model serving. Possible native memory leak.',c:.38}],
+reasoning:`[Agent] Analyzing OOM crash loop...
+
+Step 1 — Crash pattern:
+  7 restarts in 30 min. Each: cache warming → OOM → killed → repeat.
+  "Loading 1.2M model embeddings" on EVERY restart is the death cycle.
+
+Step 2 — Root cause fingerprint:
+  "ML model cache growing: 847MB (unbounded)"
+  TSG: "CACHE_MAX_SIZE_MB must be set explicitly, default is unlimited"
+  Deploy v2.1.0 37m ago — high temporal correlation.
+  INC-3087 identical pattern confirmed.
+
+Step 3 — Confirmation:
+  kubectl get deploy reco-engine → CACHE_MAX_SIZE_MB NOT SET in env
+  Missing env var = unbounded cache = root cause confirmed.
+
+Step 4 — Break the loop:
+  Set CACHE_MAX_SIZE_MB=512 → caps cache → no more OOM
+  Increase memory limit to 3Gi → headroom during warmup
+  Scale replicas to restore capacity
+
+CONCLUSION: Missing CACHE_MAX_SIZE_MB in v2.1.0 → unbounded cache → OOM.
+All 3 fixes are low-risk, auto-executable.`,
+actions:[{t:'Set cache size limit (break crash loop)',d:'Set CACHE_MAX_SIZE_MB=512 to cap ML model cache immediately.',cmd:'kubectl set env deployment/recommendation-engine CACHE_MAX_SIZE_MB=512 -n production',dec:'auto',risk:'low',c:.93},{t:'Increase memory limit to 3Gi',d:'Give pod headroom during cache warmup while fix takes effect.',cmd:"kubectl patch deployment recommendation-engine -n production -p '{\"spec\":{\"template\":{\"spec\":{\"containers\":[{\"name\":\"recommendation-engine\",\"resources\":{\"limits\":{\"memory\":\"3Gi\"}}}]}}}}'",dec:'auto',risk:'low',c:.88},{t:'Scale up replicas to restore capacity',d:'Only 1/4 replicas running — scale to 6 to handle current traffic.',cmd:'kubectl scale deployment recommendation-engine --replicas=6 -n production',dec:'auto',risk:'low',c:.85}],
+dec:'auto',
+mon:[{l:'Pod Restarts',b:'7',a:'0'},{l:'Memory Usage',b:'98%',a:'54%'},{l:'Error Rate',b:'61%',a:'0.4%'},{l:'Replicas Up',b:'1/4',a:'6/6'}]},
+
+{id:'latency',title:'API Gateway P99 Latency Spike',svc:'api-gateway',sev:'high',cat:'Latency',
+metrics:[{l:'P99 Latency',v:'12.3s',c:'red',s:'↑ from 250ms'},{l:'Timeout Rate',v:'18%',c:'red',s:'↑ from 0.01%'},{l:'504 Errors',v:'2,100/min',c:'red',s:'Gateway Timeout'},{l:'P50 Latency',v:'340ms',c:'yellow',s:'Slightly elevated'},{l:'Upstream Errs',v:'18%',c:'red',s:'user-profile-svc'},{l:'Throughput',v:'4,200 rps',c:'green',s:'Normal'}],
+raw:`{\n  "alert_id": "ALT-20240425-1435",\n  "source": "cloudwatch",\n  "severity": "HIGH",\n  "service": "api-gateway",\n  "metric": "TargetResponseTime.p99",\n  "threshold": 2.0,\n  "current_value": 12.3,\n  "message": "P99 latency 12.3s exceeds 2s threshold"\n}`,
+norm:`{\n  "signal_id": "SIG-c7d2e5b3",\n  "source": "cloudwatch",\n  "signal_type": "alert",\n  "severity": "high",\n  "service": "api-gateway",\n  "summary": "P99 spike to 12.3s — 18% timeout rate, 504 errors",\n  "ingestion_latency_ms": 445\n}`,
+logs:[{t:'14:32:01',l:'w',m:'upstream timeout: user-profile-service /api/v2/profile (10s exceeded)'},{t:'14:32:15',l:'e',m:'504 Gateway Timeout → GET /api/v2/recommendations (upstream: user-profile-svc)'},{t:'14:33:00',l:'w',m:'connection pool to user-profile-svc: 45/50 busy'},{t:'14:34:30',l:'i',m:'slow query: SELECT * FROM user_preferences JOIN feature_flags... (took 11.2s)'},{t:'14:35:00',l:'e',m:'missing index on user_preferences.user_id after migration 0042'},{t:'14:35:07',l:'w',m:'circuit breaker threshold approaching: 18% errors on user-profile-svc'}],
+health:`service:   api-gateway (nginx + lua)\nreplicas:  8/8 running (healthy)\ncpu:       18% (normal)\nupstream:  user-profile-svc → 18% errors, 11s avg latency\nupstream:  all other services → <0.1% errors\nlast_migration: 0042_add_feature_flags (2024-04-25T13:55:00Z, 40m ago)\non_call:   @dmitri.volkov`,
+tsgs:[{t:'API Gateway Upstream Timeout Runbook',s:0.91,c:'Isolate slow upstream via access logs. Enable circuit breaker if error rate >10%. Check for slow queries after DB migrations.'},{t:'PostgreSQL Missing Index Recovery',s:0.89,c:'Run EXPLAIN ANALYZE on slow query. Add index CONCURRENTLY (non-blocking). Monitor post-index.'},{t:'Circuit Breaker Configuration',s:0.76,c:'Enable on user-profile-svc. Set threshold 20%. Provide fallback (cached profile).'}],
+hist:[{id:'INC-3199',d:'2024-03-28',s:'Missing index after migration on orders-service, P99 spiked to 9s.',r:'Added index CONCURRENTLY, restored in 4 minutes.'}],
+hyps:[{r:1,t:'Missing DB index after migration 0042',d:'Migration 0042 ran 40m ago. Logs: "missing index on user_preferences.user_id". Slow query 11.2s matches P99. Classic post-migration pattern.',c:.95},{r:2,t:'user-profile-svc performance regression',d:'Isolated to one upstream — all others healthy. Code regression possible but migration timing more compelling.',c:.41},{r:3,t:'DB host resource contention',d:'Less likely — specific index error rather than general load.',c:.22}],
+reasoning:`[Agent] Analyzing P99 latency spike...
+
+Step 1 — Isolate slow upstream:
+  P50=340ms (OK), P99=12.3s → tail latency, not systemic load
+  All 504s trace to user-profile-svc → isolate to one service.
+
+Step 2 — Timeline:
+  migration 0042 @ 13:55 UTC (40m before alert)
+  "missing index on user_preferences.user_id after migration 0042" → smoking gun
+
+Step 3 — Confirm slow query:
+  "SELECT * FROM user_preferences JOIN feature_flags... (took 11.2s)"
+  user_preferences has ~50M rows → seq scan = 10-12s → matches P99 exactly.
+
+Step 4 — Remediation:
+  CREATE INDEX CONCURRENTLY (non-blocking, safe in prod) → 2-4 min build
+  Enable circuit breaker NOW to stop 504 cascade
+  After index built → latency returns to normal automatically.
+
+CONCLUSION: migration 0042 dropped user_id index → full table scan → 11s queries → 504s.
+SAFEST FIX: circuit breaker + CREATE INDEX CONCURRENTLY (no rollback needed).`,
+actions:[{t:'Enable circuit breaker on user-profile-svc',d:'Stop 504 cascade immediately. Return cached/empty profile as fallback.',cmd:'kubectl set env deployment/api-gateway USER_PROFILE_CIRCUIT_BREAKER=true -n production',dec:'auto',risk:'low',c:.91},{t:'Create missing index CONCURRENTLY',d:'Non-blocking index creation safe in production. Will resolve query latency.',cmd:"psql -h db-primary -d userdb -c 'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_user_prefs_user_id ON user_preferences(user_id);'",dec:'auto',risk:'low',c:.95},{t:'Disable circuit breaker post-recovery',d:'After index built (monitor pg_stat_progress_create_index), restore full routing.',cmd:'kubectl set env deployment/api-gateway USER_PROFILE_CIRCUIT_BREAKER=false -n production',dec:'human',risk:'low',c:.88}],
+dec:'auto',
+mon:[{l:'P99 Latency',b:'12.3s',a:'235ms'},{l:'Timeout Rate',b:'18%',a:'0.01%'},{l:'504 Errors/min',b:'2,100',a:'0'},{l:'Upstream Errors',b:'18%',a:'0.08%'}]},
+
+{id:'cert',title:'TLS Certificate Expiring in 47h',svc:'api.company.com',sev:'high',cat:'Security',
+metrics:[{l:'Cert Expires',v:'47h',c:'red',s:'Action required!'},{l:'Services Affected',v:'12',c:'red',s:'*.company.com'},{l:'Auto-Renewal',v:'FAILED',c:'red',s:'cert-manager'},{l:'ACME Challenges',v:'3 FAILED',c:'red',s:'DNS validation'},{l:'Last Renewal',v:'89d ago',c:'yellow',s:'Previously OK'},{l:'Traffic',v:'28,400rps',c:'green',s:'Normal'}],
+raw:`{\n  "alert_id": "ALT-20240425-0600",\n  "source": "cert-manager",\n  "signal_type": "certificate_expiry",\n  "severity": "HIGH",\n  "certificate": "wildcard-company-com",\n  "expiry": "2024-04-27T06:00:00Z",\n  "hours_remaining": 48,\n  "auto_renewal_status": "FAILED",\n  "failure_reason": "ACME DNS-01: Route53 AccessDenied"\n}`,
+norm:`{\n  "signal_id": "SIG-d4a8b1c9",\n  "source": "cert-manager",\n  "signal_type": "certificate_expiry",\n  "severity": "high",\n  "service": "api.company.com",\n  "summary": "TLS wildcard cert expiring in 47h — renewal failed (IAM permission denied)",\n  "ingestion_latency_ms": 89\n}`,
+logs:[{t:'06:00:01',l:'w',m:'Certificate wildcard-company-com expires in 48h'},{t:'06:00:05',l:'e',m:'ACME DNS-01 challenge failed: Route53 ChangeResourceRecordSets AccessDenied'},{t:'06:00:05',l:'e',m:'IAM role cert-manager-prod: missing route53:ChangeResourceRecordSets permission'},{t:'06:00:06',l:'e',m:'Retry 1/3 failed: same IAM error'},{t:'06:00:08',l:'e',m:'Retry 3/3 failed: CertificateRequest will not retry automatically'},{t:'06:00:10',l:'w',m:'All 12 Ingress resources will fail TLS when cert expires 2024-04-27T06:00:00Z'}],
+health:`certificate: wildcard-company-com (*.company.com)\nissuer:     letsencrypt-production (ACME DNS-01)\nexpiry:     2024-04-27T06:00:00Z (47h remaining)\nservices:   12 ingress resources using this cert\nrenewal:    FAILED — IAM permission denied\niam_change: policy updated 2024-04-20 (security audit)\non_call:   @security-team, @platform-team`,
+tsgs:[{t:'cert-manager ACME DNS-01 Failure Runbook',s:0.97,c:'Check IAM role permissions for Route53. Required: route53:ChangeResourceRecordSets, route53:GetChange, route53:ListHostedZonesByName.'},{t:'Emergency Certificate Renewal Procedure',s:0.93,c:'Fix IAM issue. Delete failed CertificateRequest. Trigger manual renewal via kubectl annotate.'},{t:'IAM Permission Rollback Guide',s:0.81,c:'Revert to previous IAM policy version via AWS Console > IAM > Policies > Policy versions.'}],
+hist:[{id:'INC-2801',d:'2023-12-15',s:'cert-manager DNS-01 failure due to Route53 hosted zone ARN change not updated in IAM.',r:'Updated IAM policy to wildcard ARN arn:aws:route53:::hostedzone/*'}],
+hyps:[{r:1,t:'IAM policy change removed Route53 permission',d:'IAM policy updated 5 days ago (security audit). Logs: AccessDenied for route53:ChangeResourceRecordSets on cert-manager-prod role.',c:.97},{r:2,t:'Route53 hosted zone ARN changed',d:'If hosted zone was recreated, IAM policy may reference old ARN.',c:.31},{r:3,t:'AWS service outage affecting Route53',d:'Unlikely — specific IAM error rather than service unavailable.',c:.04}],
+reasoning:`[Agent] Analyzing TLS certificate expiry...
+
+Step 1 — Root cause:
+  Error: "IAM role cert-manager-prod: missing route53:ChangeResourceRecordSets"
+  IAM policy last updated: 2024-04-20 (security audit tightened permissions)
+  CONCLUSION: Security audit removed the Route53 permission from cert-manager role.
+
+Step 2 — Urgency assessment:
+  47 hours → must act within 24h for safety buffer
+  12 services affected → total HTTPS outage if cert expires
+  This is a P0 risk that becomes P0 incident in 47h.
+
+Step 3 — Fix:
+  Restore route53:ChangeResourceRecordSets to cert-manager-prod IAM role
+  → Trigger fresh certificate renewal
+  → Monitor cert-manager logs for success
+
+Step 4 — Authorization:
+  IAM permission changes require security team approval per policy.
+  Auto-execution NOT appropriate.
+  Pre-drafted minimal policy change ready for review.
+
+CONCLUSION: Security audit removed Route53 permission.
+ESCALATE: Page @security-team for emergency IAM approval.`,
+actions:[{t:'Page security team for emergency IAM review',d:'Alert @security-team via PagerDuty. 47h deadline. Include pre-drafted IAM change.',cmd:'[PagerDuty API] POST /incidents {"title":"Emergency IAM change — TLS cert 47h deadline","urgency":"high","service":"security-team"}',dec:'auto',risk:'low',c:.99},{t:'Restore route53:ChangeResourceRecordSets to IAM',d:'Minimal IAM change to restore auto-renewal. Requires security team approval.',cmd:'aws iam put-role-policy --role-name cert-manager-prod --policy-name CertManagerRoute53 --policy-document file://route53-policy.json',dec:'human',risk:'medium',c:.97},{t:'Trigger manual cert renewal after IAM fix',d:'Delete failed CertificateRequest and trigger fresh ACME challenge.',cmd:'kubectl delete certificaterequest -l cert-manager.io/certificate-name=wildcard-company-com -n cert-manager && kubectl annotate certificate wildcard-company-com cert-manager.io/issue-temporary-certificate="true" -n cert-manager',dec:'human',risk:'low',c:.92}],
+dec:'escalate',
+mon:[{l:'Cert Expires',b:'47h',a:'89 days'},{l:'Auto-Renewal',b:'FAILED',a:'SUCCESS'},{l:'ACME Challenges',b:'3 FAILED',a:'1 OK'},{l:'Services TLS',b:'AT RISK',a:'SECURE'}]}
+];
+
+const STAGES=['Event / Signal Ingestion','Context Aggregation','Pre-processing & Validation','Agent Reasoning Engine','Confidence Scoring','Risk Scoring','Policy / Guardrail Evaluation','Decision Gateway','Action Execution','Human-in-the-Loop','Audit & Trace Logging','Feedback & Learning Loop','Continuous Monitoring'];
+
+let cur=null,curS=0,running=false,ss=new Array(13).fill('p'),alog=[];
+
+function init(){renderSC();renderSTG();checkOllama();}
+
+function checkOllama(){
+  fetch('http://localhost:11434/api/tags',{signal:AbortSignal.timeout(2000)})
+    .then(r=>r.json()).then(d=>{
+      const ok=d.models?.some(m=>m.name.includes('mistral'));
+      document.getElementById('mdot').style.background=ok?'var(--green)':'var(--yellow)';
+      document.getElementById('mlabel').textContent=ok?'mistral:7b (live)':'Simulation mode';
+    }).catch(()=>{
+      document.getElementById('mdot').style.background='var(--yellow)';
+      document.getElementById('mlabel').textContent='Simulation mode';
+    });
+}
+
+async function callLLM(prompt,fb){
+  try{
+    const r=await fetch('http://localhost:11434/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'mistral:7b',prompt,stream:false}),signal:AbortSignal.timeout(30000)});
+    if(!r.ok)throw new Error();
+    const d=await r.json();return d.response||fb;
+  }catch{return fb;}
+}
+
+function renderSC(){
+  document.getElementById('sclist').innerHTML=SC.map(s=>`
+    <div class="scard${cur?.id===s.id?' active':''}" onclick="selSC('${s.id}')">
+      <div class="scard-title">${s.title}</div>
+      <div class="scard-meta"><span class="sbadge s${s.sev[0]}">${s.sev.toUpperCase()}</span><span>${s.svc}</span></div>
+    </div>`).join('');
+}
+
+function renderSTG(){
+  document.getElementById('stgnav').innerHTML=STAGES.map((n,i)=>{
+    const s=ss[i],cl=s==='d'?'done':s==='r'?'running':i+1===curS?'cur':'';
+    const ic=s==='d'?'✓':s==='r'?'…':i+1;
+    return`<div class="stg-item ${cl}" onclick="jmp(${i+1})"><div class="snum">${ic}</div><div>${n}</div></div>`;
+  }).join('');
+}
+
+function selSC(id){
+  cur=SC.find(s=>s.id===id);curS=0;ss=new Array(13).fill('p');alog=[];running=false;
+  document.getElementById('welcome').style.display='none';
+  document.getElementById('pipview').style.display='block';
+  document.getElementById('ititle').textContent=cur.title;
+  document.getElementById('isubtitle').textContent=`${cur.svc} · production · ${cur.sev.toUpperCase()}`;
+  document.getElementById('rbtn').disabled=false;
+  document.getElementById('rtxt').textContent='Run Pipeline';
+  document.getElementById('ricon').textContent='▶';
+  document.getElementById('pfill').style.width='0%';
+  document.getElementById('pstatus').textContent='Ready';
+  document.querySelectorAll('.stg-view').forEach(v=>v.classList.remove('vis'));
+  renderSC();renderSTG();fillS1();
+}
+
+async function runPipeline(){
+  if(running||!cur)return;
+  running=true;ss=new Array(13).fill('p');alog=[];
+  document.getElementById('rbtn').disabled=true;
+  document.getElementById('rtxt').textContent='Running...';
+  document.getElementById('ricon').textContent='⏳';
+  for(let i=1;i<=13;i++){
+    await runStage(i);
+    if(i===10&&cur.dec!=='auto'){
+      running=false;
+      document.getElementById('rbtn').disabled=false;
+      document.getElementById('rtxt').textContent='Continue After HITL';
+      document.getElementById('ricon').textContent='▶';
+      document.getElementById('pstatus').textContent='Awaiting human decision';
+      return;
+    }
+  }
+  finish();
+}
+
+async function runStage(n){
+  curS=n;ss[n-1]='r';renderSTG();
+  document.getElementById('pstatus').textContent=`Stage ${n}: ${STAGES[n-1]}`;
+  document.getElementById('pfill').style.width=`${(n/13)*100}%`;
+  document.querySelectorAll('.stg-view').forEach(v=>v.classList.remove('vis'));
+  document.getElementById(`s${n}`).classList.add('vis');
+  document.getElementById('pipview').scrollTo({top:0,behavior:'smooth'});
+  await fill(n);
+  await sleep(800);
+  ss[n-1]='d';renderSTG();
+  alog.push({n,stage:`${n}·${STAGES[n-1].split('/')[0].trim()}`,msg:`Stage ${n} (${STAGES[n-1]}) completed`});
+}
+
+async function fill(n){
+  if(n===1)fillS1();
+  else if(n===2)fillS2();
+  else if(n===3)fillS3();
+  else if(n===4)await fillS4();
+  else if(n===5)fillS5();
+  else if(n===6)fillS6();
+  else if(n===7)fillS7();
+  else if(n===8)fillS8();
+  else if(n===9)fillS9();
+  else if(n===10)fillS10();
+  else if(n===11)fillS11();
+  else if(n===12)fillS12();
+  else if(n===13)fillS13();
+}
+
+function jmp(n){
+  if(!cur)return;
+  document.querySelectorAll('.stg-view').forEach(v=>v.classList.remove('vis'));
+  document.getElementById(`s${n}`).classList.add('vis');
+  curS=n;renderSTG();fill(n);
+}
+
+function finish(){
+  running=false;
+  document.getElementById('rbtn').disabled=false;
+  document.getElementById('rtxt').textContent='Run Again';
+  document.getElementById('ricon').textContent='↺';
+  document.getElementById('pstatus').textContent='Complete';
+  document.getElementById('pfill').style.width='100%';
+}
+
+function fillS1(){
+  const s=cur;
+  document.getElementById('s1').innerHTML=`
+    <div class="card"><div class="card-title">📡 Signal Metrics</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px">
+        ${s.metrics.map(m=>`<div class="mbox"><div class="mlabel">${m.l}</div><div class="mval ${m.c}">${m.v}</div><div class="msub">${m.s}</div></div>`).join('')}
+      </div>
+      <div class="mlabel" style="margin-bottom:5px">Raw Alert Payload</div>
+      <div class="log-block">${cj(s.raw)}</div>
+    </div>
+    <div class="card"><div class="card-title">✅ Normalized Signal</div>
+      <div class="log-block">${cj(s.norm)}</div>
+    </div>`;
+}
+
+function fillS2(){
+  const s=cur;
+  document.getElementById('s2').innerHTML=`
+    <div class="card"><div class="card-title">🔍 System Context</div>
+      <div class="ctx-g">
+        <div class="ctx-i"><div class="ctx-l">Recent Error Logs</div>
+          <div class="log-block">${s.logs.map(l=>`<div><span class="lt">${l.t}</span><span class="l${l.l}">[${l.l==='e'?'ERROR':l.l==='w'?'WARN':l.l==='i'?'INFO':'DEBUG'}]</span> ${l.m}</div>`).join('')}</div>
+        </div>
+        <div class="ctx-i"><div class="ctx-l">System Health</div>
+          <div class="log-block">${s.health.split('\n').map(l=>`<div class="ld">${l}</div>`).join('')}</div>
+        </div>
+      </div>
+    </div>
+    <div class="card"><div class="card-title">📚 Retrieved TSGs</div>
+      ${s.tsgs.map(t=>`<div class="tsg"><div class="tsg-t">${t.t}</div><div style="font-size:11px;color:var(--text2);margin:3px 0 5px;line-height:1.5">${t.c}</div><div style="font-size:10px;color:var(--text3)">Relevance: <strong style="color:var(--accent2)">${Math.round(t.s*100)}%</strong></div></div>`).join('')}
+    </div>
+    <div class="card"><div class="card-title">🕰️ Similar Past Incidents</div>
+      ${s.hist.map(h=>`<div class="hyp"><div style="min-width:80px;font-size:11px;font-weight:700;color:var(--accent2)">${h.id}</div><div><div class="hyp-desc">${h.d} — ${h.s}</div><div style="font-size:10px;color:var(--green2);margin-top:3px">Resolution: ${h.r}</div></div></div>`).join('')}
+    </div>`;
+}
+
+function fillS3(){
+  const chk=[
+    {i:'✓',l:'Signal schema validation',d:'All required fields present',r:'PASS',c:'pp'},
+    {i:'✓',l:'Timestamp normalization (UTC)',d:'Converted to ISO 8601 UTC — OK',r:'PASS',c:'pp'},
+    {i:'✓',l:'Log deduplication',d:`${cur.logs.length} entries — 0 duplicates`,r:'PASS',c:'pp'},
+    {i:'✓',l:'Log freshness check',d:'All logs within last 5 minutes',r:'PASS',c:'pp'},
+    {i:'✓',l:'Context completeness',d:'Logs, TSGs, history all retrieved',r:'PASS',c:'pp'},
+    {i:'🔐',l:'PII masking',d:'0 emails detected. 2 internal IDs masked to [USER_ID]',r:'MASKED',c:'pw'},
+    {i:'🔑',l:'Secrets scan',d:'0 API keys or passwords detected',r:'CLEAN',c:'pp'},
+    {i:'👤',l:'Access control',d:`Authorized for ${cur.svc} in production`,r:'AUTH',c:'pp'},
+  ];
+  document.getElementById('s3').innerHTML=`
+    <div class="card"><div class="card-title">🧹 Data Quality & Security</div>
+      ${chk.map(c=>`<div class="policy-item"><div class="pi">${c.i}</div><div class="pt"><div style="font-weight:700;margin-bottom:2px">${c.l}</div><div style="font-size:10px;color:var(--text3)">${c.d}</div></div><div class="pr ${c.c}">${c.r}</div></div>`).join('')}
+    </div>`;
+}
+
+async function fillS4(){
+  document.getElementById('s4').innerHTML=`
+    <div class="thinking"><div style="display:flex;gap:4px"><div class="td"></div><div class="td"></div><div class="td"></div></div><div style="font-size:11px;color:var(--accent2)">Agent analyzing context and generating hypotheses...</div></div>
+    <div class="card"><div class="card-title">🧠 Root Cause Hypotheses</div><div id="hyps-out"></div></div>
+    <div class="card"><div class="card-title">💡 Reasoning Chain</div><div class="log-block" id="reason-out" style="max-height:200px"></div></div>`;
+  await sleep(1400);
+  document.querySelector('.thinking').style.display='none';
+  document.getElementById('hyps-out').innerHTML=cur.hyps.map(h=>`
+    <div class="hyp"><div class="hyp-r${h.r===1?' r1':''}">#${h.r}</div><div style="flex:1">
+      <div class="hyp-title">${h.t}</div><div class="hyp-desc">${h.d}</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+        <span style="font-size:10px;color:var(--text3)">Confidence</span>
+        <div class="sbar-w"><div class="sbar" style="width:${h.c*100}%;background:${h.c>.7?'var(--green)':'var(--yellow)'}"></div></div>
+        <span class="slv" style="color:${h.c>.7?'var(--green2)':'var(--yellow2)'}">${Math.round(h.c*100)}%</span>
+      </div>
+    </div></div>`).join('');
+  const live=await callLLM(`You are an expert SRE. Incident: ${cur.title} on ${cur.svc}. Logs: ${cur.logs.map(l=>l.m).join('; ')}. Give the most likely root cause in 2-3 sentences.`,'');
+  const r=live||cur.reasoning;
+  document.getElementById('reason-out').innerHTML=r.split('\n').map(l=>{
+    if(l.includes('[Agent]'))return`<div style="color:var(--accent2);font-weight:700">${l}</div>`;
+    if(l.startsWith('Step'))return`<div style="color:var(--yellow2);margin-top:6px">${l}</div>`;
+    if(l.includes('CONCLUSION'))return`<div style="color:var(--green2);font-weight:700;margin-top:6px">${l}</div>`;
+    return`<div style="color:var(--text3)">${l}</div>`;
+  }).join('');
+}
+
+function fillS5(){
+  const conf=cur.hyps[0].c;
+  const factors=[{l:'Historical incident similarity',v:.87},{l:'Retrieved context quality',v:.91},{l:'Log signal strength',v:.85},{l:'Temporal correlation',v:.93},{l:'Model certainty',v:.78}];
+  document.getElementById('s5').innerHTML=`
+    <div class="card"><div class="card-title">📊 Confidence Analysis</div>
+      <div style="display:flex;gap:16px;margin-bottom:14px;padding:12px;background:var(--bg3);border-radius:var(--r);align-items:center">
+        <div style="text-align:center"><div style="font-size:38px;font-weight:900;color:${conf>.8?'var(--green2)':'var(--yellow2)'}">${Math.round(conf*100)}%</div><div style="font-size:10px;color:var(--text3)">Overall Confidence</div></div>
+        <div style="flex:1"><div style="font-size:12px;font-weight:700;margin-bottom:3px">${cur.hyps[0].t}</div><div style="font-size:11px;color:var(--text2)">${conf>.8?'High confidence — multiple corroborating signals':'Moderate confidence — some ambiguity'}</div></div>
+      </div>
+      ${factors.map(f=>`<div class="fmet"><div class="flabel">${f.l}</div><div class="fb-w"><div class="fb" style="width:${f.v*100}%;background:var(--green)"></div></div><div class="fv" style="color:var(--green2)">${Math.round(f.v*100)}%</div></div>`).join('')}
+      <div style="font-size:11px;color:var(--text2);padding:8px 12px;background:rgba(99,102,241,.06);border-radius:var(--r);margin-top:10px;border-left:3px solid var(--accent)">
+        Confidence ${Math.round(conf*100)}% ${conf>.8?'exceeds':'is near'} auto-execution threshold (80%). Risk scoring determines final mode.
+      </div>
+    </div>`;
+}
+
+function fillS6(){
+  const rmap={low:{col:'var(--teal)',pct:20},medium:{col:'var(--yellow2)',pct:55},high:{col:'var(--red2)',pct:85}};
+  document.getElementById('s6').innerHTML=`
+    <div class="card"><div class="card-title">⚠️ Risk Assessment</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px">
+        <div style="text-align:center;padding:10px;background:var(--bg3);border-radius:var(--r)"><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Environment</div><div style="font-weight:700;color:var(--red2)">PRODUCTION</div></div>
+        <div style="text-align:center;padding:10px;background:var(--bg3);border-radius:var(--r)"><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Reversible</div><div style="font-weight:700;color:var(--green2)">YES</div></div>
+        <div style="text-align:center;padding:10px;background:var(--bg3);border-radius:var(--r)"><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Blast Radius</div><div style="font-weight:700;color:var(--yellow2)">${cur.svc}</div></div>
+      </div>
+      ${cur.actions.map(a=>{const r=rmap[a.risk];return`
+        <div class="action-box"><div class="action-hd"><div class="action-title">${a.t}</div><span class="badge b${a.risk[0]}">${a.risk} risk</span></div>
+          <div style="display:flex;align-items:center;gap:8px"><span style="font-size:10px;color:var(--text3);min-width:60px">Risk</span><div class="sbar-w"><div class="sbar" style="width:${r.pct}%;background:${r.col}"></div></div><span style="font-size:10px;font-weight:700;color:${r.col};min-width:28px">${r.pct}%</span></div>
+        </div>`;}).join('')}
+    </div>`;
+}
+
+function fillS7(){
+  const dt=cur.dec;
+  const pol=[
+    {i:'📋',l:'SOC 2 compliance',d:'All actions logged with full audit trail — compliant',r:'PASS',c:'pp'},
+    {i:'🔒',l:'Production guardrail',d:'Elevated scrutiny applied. Destructive operations blocked.',r:'PASS',c:'pp'},
+    {i:'👥',l:'RBAC check',d:'Role: incident-responder — authorized for config changes, NOT data deletion',r:'PASS',c:'pp'},
+    {i:'🚫',l:'Destructive ops guardrail',d:'No DELETE/DROP in proposed actions — guardrail not triggered',r:'PASS',c:'pp'},
+    {i:'⚡',l:'Auto-execution policy',d:'Rollback/IAM changes require human approval per policy',r:dt==='auto'?'AUTO OK':'HUMAN REQ',c:dt==='auto'?'pp':'pw'},
+    {i:'📊',l:'Change window',d:'Emergency exception active — incident in progress',r:'EXCEPTION',c:'pw'},
+  ];
+  document.getElementById('s7').innerHTML=`
+    <div class="card"><div class="card-title">📋 Policy / Guardrail Checks</div>
+      ${pol.map(p=>`<div class="policy-item"><div class="pi">${p.i}</div><div class="pt"><div style="font-weight:700;margin-bottom:2px">${p.l}</div><div style="font-size:10px;color:var(--text3)">${p.d}</div></div><div class="pr ${p.c}">${p.r}</div></div>`).join('')}
+    </div>`;
+}
+
+function fillS8(){
+  const conf=Math.round(cur.hyps[0].c*100);
+  const risk=cur.actions.every(a=>a.risk==='low')?22:cur.actions.some(a=>a.risk==='high')?72:48;
+  const dt=cur.dec;
+  const bc={auto:{cl:'dauto',ic:'🟢',t:'Auto-execute approved',d:'High confidence + low risk → actions execute automatically.'},human:{cl:'dhuman',ic:'🟡',t:'Human approval required',d:'Rollback/sensitive actions require on-call engineer approval.'},escalate:{cl:'desc',ic:'🔴',t:'Escalated to security team',d:'IAM/security changes require security team sign-off via PagerDuty.'}}[dt];
+  document.getElementById('s8').innerHTML=`
+    <div class="card"><div class="card-title">⚡ Decision Gateway</div>
+      <div class="gwbox">
+        <div class="gwm"><div class="gwv" style="color:${conf>80?'var(--green2)':'var(--yellow2)'}">${conf}%</div><div class="gwl">Confidence</div></div>
+        <div class="gwm"><div class="gwv" style="color:${risk<40?'var(--green2)':risk<65?'var(--yellow2)':'var(--red2)'}">${risk}%</div><div class="gwl">Risk Score</div></div>
+        <div class="gwm"><div class="gwv" style="color:${dt==='auto'?'var(--green2)':dt==='human'?'var(--yellow2)':'var(--red2)'};font-size:18px">${dt.toUpperCase()}</div><div class="gwl">Decision</div></div>
+      </div>
+      <div class="dbanner ${bc.cl}"><div style="font-size:24px">${bc.ic}</div><div><div class="dtitle">${bc.t}</div><div class="ddesc">${bc.d}</div></div></div>
+      <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:8px">Proposed Actions</div>
+      ${cur.actions.map(a=>`<div class="action-box"><div class="action-hd"><div class="action-title">${a.t}</div><div class="badges"><span class="badge b${a.dec[0]}">${a.dec.toUpperCase()}</span><span class="badge b${a.risk[0]}">${a.risk}</span></div></div><div class="action-desc">${a.d}</div><div class="action-cmd">${a.cmd}</div></div>`).join('')}
+    </div>`;
+}
+
+function fillS9(){
+  const auto=cur.actions.filter(a=>a.dec==='auto');
+  const pend=cur.actions.filter(a=>a.dec!=='auto');
+  const steps=[{ic:'done',t:'Idempotency check',d:'Verified no duplicate actions via distributed lock'},
+    ...auto.map((a,i)=>({ic:i<2?'done':'running',t:a.t,d:a.cmd.substring(0,70)+'...'})),
+    ...pend.map(a=>({ic:'pending',t:`[AWAITING APPROVAL] ${a.t}`,d:'Waiting for human decision'})),
+    {ic:auto.length>0?'done':'pending',t:'Rollback checkpoint saved',d:'Current state snapshot saved'}];
+  document.getElementById('s9').innerHTML=`
+    <div class="card"><div class="card-title">🚀 Execution Log</div>
+      ${steps.map(s=>`<div class="exec-step"><div class="ei ${s.ic}">${s.ic==='done'?'✓':s.ic==='running'?'…':'○'}</div><div><div class="ei-title">${s.t}</div><div class="ei-detail">${s.d}</div></div></div>`).join('')}
+    </div>`;
+}
+
+function fillS10(){
+  const dt=cur.dec;
+  if(dt==='auto'){
+    document.getElementById('s10').innerHTML=`<div class="card"><div class="card-title">Human-in-the-Loop</div><div style="text-align:center;padding:20px;color:var(--green2)"><div style="font-size:40px;margin-bottom:8px">✓</div><div style="font-weight:700;margin-bottom:5px">No human intervention required</div><div style="font-size:11px;color:var(--text2)">All actions auto-executed (high confidence + low risk).</div></div></div>`;
+    return;
+  }
+  const pend=cur.actions.filter(a=>a.dec!=='auto');
+  document.getElementById('s10').innerHTML=`
+    <div class="hitl-wrap">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <div style="font-size:28px">${dt==='escalate'?'🔴':'🟡'}</div>
+        <div><div style="font-size:14px;font-weight:800;color:var(--yellow2)">${dt==='escalate'?'Security Team Approval Required':'On-Call Engineer Decision Required'}</div><div style="font-size:11px;color:var(--text2)">Review agent recommendations before execution.</div></div>
+      </div>
+      <div style="background:var(--bg3);border-radius:var(--r);padding:12px;margin-bottom:12px">
+        <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:6px">AGENT SUMMARY</div>
+        <div style="font-size:12px;font-weight:700;margin-bottom:3px">${cur.hyps[0].t}</div>
+        <div style="font-size:11px;color:var(--text2);line-height:1.5">${cur.hyps[0].d}</div>
+        <div style="margin-top:8px;display:flex;gap:16px;font-size:11px">
+          <span>Confidence: <strong style="color:var(--green2)">${Math.round(cur.hyps[0].c*100)}%</strong></span>
+          <span>Severity: <strong style="color:var(--red2)">${cur.sev.toUpperCase()}</strong></span>
+        </div>
+      </div>
+      ${pend.map((a,i)=>`<div class="action-box" id="ha${i}"><div class="action-hd"><div class="action-title">${a.t}</div><span class="badge b${a.risk[0]}">${a.risk}</span></div><div class="action-desc">${a.d}</div><div class="action-cmd">${a.cmd}</div>
+        <div class="hitl-btns"><button class="btn btn-ok" onclick="hApprove(${i})">✓ Approve</button><button class="btn btn-no" onclick="hReject(${i})">✗ Reject</button></div>
+        <div id="hd${i}" style="margin-top:6px;font-size:11px;font-weight:700"></div></div>`).join('')}
+      <div style="margin-top:14px"><button class="btn btn-pri" onclick="hCont()">Continue Pipeline ▶</button></div>
+    </div>`;
+}
+
+function hApprove(i){const e=document.getElementById(`hd${i}`);e.style.color='var(--green2)';e.textContent='✓ Approved';}
+function hReject(i){const e=document.getElementById(`hd${i}`);e.style.color='var(--red2)';e.textContent='✗ Rejected';}
+
+async function hCont(){
+  running=true;
+  document.getElementById('rbtn').disabled=true;
+  document.getElementById('rtxt').textContent='Running...';
+  for(let i=11;i<=13;i++) await runStage(i);
+  finish();
+}
+
+function fillS11(){
+  const now=new Date();
+  const all=[
+    {s:'1·Ingestion',m:`Alert from ${cur.metrics[0].l}: ${cur.metrics[0].v}`},
+    {s:'1·Ingestion',m:'Normalized signal envelope created'},
+    {s:'2·Context',m:`Retrieved ${cur.logs.length} logs, ${cur.tsgs.length} TSGs, ${cur.hist.length} past incidents`},
+    {s:'3·Preprocess',m:'PII scan clean. Schema valid. Completeness passed.'},
+    {s:'4·Reasoning',m:`Top hypothesis: ${cur.hyps[0].t} (${Math.round(cur.hyps[0].c*100)}%)`},
+    {s:'5·Confidence',m:`Confidence: ${Math.round(cur.hyps[0].c*100)}%`},
+    {s:'6·Risk',m:`Risk: ${cur.actions.some(a=>a.risk==='high')?'HIGH':cur.actions.some(a=>a.risk==='medium')?'MEDIUM':'LOW'}`},
+    {s:'7·Policy',m:'All policy checks passed. SOC 2 compliant.'},
+    {s:'8·Decision',m:`Decision: ${cur.dec.toUpperCase()}`},
+    {s:'9·Execution',m:`${cur.actions.filter(a=>a.dec==='auto').length} actions executed auto.`},
+    {s:'10·HITL',m:cur.dec==='auto'?'No human intervention needed':'Human decisions recorded.'},
+    ...alog.map(a=>({s:a.stage,m:a.msg}))
+  ];
+  document.getElementById('s11').innerHTML=`
+    <div class="card"><div class="card-title">📝 Full Audit Trail</div>
+      ${all.map((l,i)=>{const t=new Date(now.getTime()-(all.length-i)*8000).toTimeString().substr(0,8);
+        return`<div class="audit-row"><div class="at">${t}</div><div class="as">${l.s}</div><div class="am">${l.m}</div></div>`;}).join('')}
+    </div>`;
+}
+
+function fillS12(){
+  document.getElementById('s12').innerHTML=`
+    <div class="card"><div class="card-title">🔄 Feedback & Learning</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+        <div style="background:var(--bg3);border-radius:var(--r);padding:12px"><div style="font-size:10px;color:var(--text3);margin-bottom:6px">OUTCOME</div><div style="color:var(--green2);font-weight:700;margin-bottom:4px">✓ Incident Resolved</div><div style="font-size:11px;color:var(--text2)">Root cause confirmed. Service restored within SLA.</div></div>
+        <div style="background:var(--bg3);border-radius:var(--r);padding:12px"><div style="font-size:10px;color:var(--text3);margin-bottom:6px">RCA ACCURACY</div><div style="font-size:32px;color:var(--green2);font-weight:900">✓</div><div style="font-size:11px;color:var(--text2)">Hypothesis #1 confirmed by post-incident review.</div></div>
+      </div>
+      ${[{l:'Runbook updated',d:`Added "${cur.hyps[0].t.substring(0,40)}..." as known pattern`},{l:'Alert threshold tuned',d:`Adjusted ${cur.metrics[0].l} for earlier detection`},{l:'Confidence model updated',d:`Historical weight increased for ${cur.cat} incidents`},{l:'Risk thresholds OK',d:'Actions correctly classified — no adjustment needed'}]
+        .map(i=>`<div class="policy-item"><div class="pi">📈</div><div class="pt"><div style="font-weight:700;margin-bottom:2px">${i.l}</div><div style="font-size:10px;color:var(--text3)">${i.d}</div></div><div class="pr pp">UPDATED</div></div>`).join('')}
+      <div style="margin-top:12px">
+        ${[{l:'Time to detection',v:'<30s',pct:95},{l:'Time to triage',v:'<90s',pct:92},{l:'RCA accuracy',v:'100%',pct:100},{l:'Auto-executed actions',v:`${cur.actions.filter(a=>a.dec==='auto').length}/${cur.actions.length}`,pct:Math.round(cur.actions.filter(a=>a.dec==='auto').length/cur.actions.length*100)}]
+          .map(m=>`<div class="fmet"><div class="flabel">${m.l}</div><div class="fb-w"><div class="fb" style="width:${m.pct}%;background:var(--green)"></div></div><div class="fv" style="color:var(--green2)">${m.v}</div></div>`).join('')}
+      </div>
+    </div>`;
+}
+
+function fillS13(){
+  document.getElementById('s13').innerHTML=`
+    <div class="card"><div class="card-title">📈 Post-Remediation Health</div>
+      <div class="mgrid4">
+        ${cur.mon.map(m=>`<div class="mm"><div class="mm-label">${m.l}</div><div class="mm-val"><span style="color:var(--text3);text-decoration:line-through;font-size:12px">${m.b}</span> <span style="color:var(--text3)">→</span> <span style="color:var(--green2)">${m.a}</span></div><div style="font-size:10px;color:var(--green2);margin-top:3px">✓ Stable</div></div>`).join('')}
+      </div>
+      <div style="background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:var(--r);padding:12px;margin-top:8px">
+        <div style="font-size:13px;font-weight:700;color:var(--green2);margin-bottom:6px">✓ System Stable — No Regressions Detected</div>
+        <div style="font-size:11px;color:var(--text2);line-height:1.7">
+          Monitoring window: 15 minutes post-remediation · All metrics nominal<br>
+          Incident closed. MTTR: <strong style="color:var(--green2)">~4 minutes</strong>
+        </div>
+      </div>
+      <div style="margin-top:8px;font-size:11px;color:var(--text3);padding:8px 12px;background:var(--bg3);border-radius:var(--r)">
+        Continuous monitoring active. Loop re-triggers automatically on metric regression. Next health check in 5 minutes.
+      </div>
+    </div>`;
+}
+
+function cj(json){
+  return json.replace(/("[\w_]+")\s*:/g,'<span style="color:var(--accent2)">$1</span>:')
+    .replace(/:\s*(".*?")/g,': <span style="color:var(--green2)">$1</span>')
+    .replace(/:\s*(true|false)/g,': <span style="color:var(--yellow2)">$1</span>')
+    .replace(/:\s*(\d+\.?\d*)/g,': <span style="color:var(--blue2)">$1</span>');
+}
+
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+
+init();
+</script>
