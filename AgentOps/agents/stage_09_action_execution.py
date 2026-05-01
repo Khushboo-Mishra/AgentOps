@@ -1,10 +1,13 @@
 """
 Stage 9 — Action Execution.
 
-Simulated execution layer. In production this would call k8s, ArgoCD,
-Terraform, etc. We simulate idempotent execution of every action in the
-multi-action plan whose own decision is "auto", with a deterministic
-"execution id" and precomputed rollback handle.
+Simulated execution layer. Executes the plan when:
+  - the gateway is GREEN (auto_execute), OR
+  - the gateway is AMBER and a human approved via HITL.
+
+When AMBER + approved-by-human, every action in the plan executes
+(including ones individually marked "human" — the human just approved them).
+When AMBER + rejected, nothing executes.
 """
 
 from __future__ import annotations
@@ -19,12 +22,25 @@ def _execution_id(seed: str) -> str:
     return f"exec-{h}"
 
 
-def run(stage4_out: dict[str, Any], stage8_out: dict[str, Any]) -> dict[str, Any]:
+def run(
+    stage4_out: dict[str, Any],
+    stage8_out: dict[str, Any],
+    hitl_decision: str | None = None,
+) -> dict[str, Any]:
     decision = stage8_out["decision"]
     plan = stage4_out.get("proposed_actions", [])
 
-    # If the gateway didn't approve auto-execution, skip everything
-    if decision != "auto_execute":
+    # Determine execution mode
+    auto_mode = decision == "auto_execute"
+    hitl_approved = decision == "request_hitl_approval" and hitl_decision == "approved"
+
+    if not auto_mode and not hitl_approved:
+        # AMBER+rejected, RED+anything, blocked, or AMBER awaiting decision
+        reason = (
+            "rejected by human" if hitl_decision == "rejected"
+            else f"awaiting human decision (gateway={decision})" if decision == "request_hitl_approval"
+            else f"not executed (gateway={decision})"
+        )
         return {
             "stage": "action_execution",
             "ok": True,
@@ -33,15 +49,16 @@ def run(stage4_out: dict[str, Any], stage8_out: dict[str, Any]) -> dict[str, Any
             "skipped_actions": [a["title"] for a in plan],
             "execution_id": None,
             "rollback_handle": None,
-            "summary": f"Action plan not executed automatically (decision={decision}).",
+            "execution_mode": "blocked",
+            "summary": f"Action plan {reason}.",
         }
 
     executed: list[dict[str, Any]] = []
     skipped: list[str] = []
     for act in plan:
-        # Only auto-marked actions execute. "human" actions in the plan still
-        # need approval even when the overall gateway is green.
-        if act.get("decision") != "auto":
+        # In auto mode: only "auto" actions execute
+        # In hitl_approved mode: ALL actions execute (human signed off)
+        if auto_mode and act.get("decision") != "auto":
             skipped.append(act["title"])
             continue
         exec_id = _execution_id(act["command"])
@@ -51,14 +68,15 @@ def run(stage4_out: dict[str, Any], stage8_out: dict[str, Any]) -> dict[str, Any
             "execution_id": exec_id,
             "rollback_handle": f"rollback-{exec_id}",
             "steps": [
-                {"step": "acquire_lock",            "ok": True, "ms": 12},
+                {"step": "acquire_lock",             "ok": True, "ms": 12},
                 {"step": "validate_idempotency_key", "ok": True, "ms": 8},
-                {"step": "apply_change",            "ok": True, "ms": 240},
-                {"step": "verify_post_state",       "ok": True, "ms": 110},
+                {"step": "apply_change",             "ok": True, "ms": 240},
+                {"step": "verify_post_state",        "ok": True, "ms": 110},
             ],
         })
 
     primary_id = executed[0]["execution_id"] if executed else None
+    mode = "auto" if auto_mode else "hitl_approved"
 
     return {
         "stage": "action_execution",
@@ -68,7 +86,8 @@ def run(stage4_out: dict[str, Any], stage8_out: dict[str, Any]) -> dict[str, Any
         "skipped_actions": skipped,
         "execution_id": primary_id,
         "rollback_handle": f"rollback-{primary_id}" if primary_id else None,
+        "execution_mode": mode,
         "summary": (
-            f"Executed {len(executed)} action(s); skipped {len(skipped)} (require human approval)."
+            f"[{mode}] Executed {len(executed)} action(s); skipped {len(skipped)}."
         ),
     }
