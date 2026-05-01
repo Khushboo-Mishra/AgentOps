@@ -67,15 +67,16 @@ with st.sidebar:
     st.divider()
     st.subheader("LLM backend")
     llm = LLMClient()
-    if llm.is_available():
-        st.success(f"Ollama detected — using `{llm.model}`")
+    backend = llm.active_backend
+    if backend == "groq":
+        st.success(f"Groq API — using `{llm.active_model}`")
+    elif backend == "ollama":
+        st.success(f"Ollama detected — using `{llm.active_model}`")
     else:
         st.warning(
-            "Ollama not detected — using simulation backend.\n\n"
-            "To use the real model:\n"
-            "1. Install Ollama: https://ollama.com\n"
-            "2. `ollama pull mistral:7b`\n"
-            "3. `ollama serve`"
+            "No LLM backend reachable — using simulation.\n\n"
+            "Local: `ollama serve` and `ollama pull mistral:7b`\n\n"
+            "Cloud: set `GROQ_API_KEY` in Streamlit secrets."
         )
 
     st.divider()
