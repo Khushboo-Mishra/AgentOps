@@ -80,10 +80,12 @@ def run_pipeline(
     out8 = stage_08_decision_gateway.run(out4, out5, out6, out7)
     yield STAGE_NAMES[7], out8
 
-    out9 = stage_09_action_execution.run(out4, out8)
+    out9 = stage_09_action_execution.run(out4, out8, hitl_decision=hitl_decision)
     yield STAGE_NAMES[8], out9
 
-    out10 = stage_10_human_in_the_loop.run(scenario, out4, out5, out6, out7, out8)
+    out10 = stage_10_human_in_the_loop.run(
+        scenario, out4, out5, out6, out7, out8, hitl_decision=hitl_decision,
+    )
     yield STAGE_NAMES[9], out10
 
     out11 = stage_11_audit.run(

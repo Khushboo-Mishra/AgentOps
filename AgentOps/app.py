@@ -472,10 +472,35 @@ def render_stage(name: str, out: dict[str, Any]):
                 st.info("Action plan not auto-executed.")
 
         elif stage == "human_in_the_loop":
-            if out["needs_hitl"]:
+            if not out["needs_hitl"]:
+                st.success("No HITL needed — informational only.")
+            elif out.get("awaiting_decision"):
                 _render_hitl_panel(out["summary_card"])
             else:
-                st.success("No HITL needed — informational only.")
+                # Decision was made — show what the human chose
+                hd = out.get("human_decision", "")
+                if hd == "approved":
+                    md(
+                        '<div class="ao-banner green">'
+                        '<div class="ao-banner-ic">✓</div>'
+                        '<div>'
+                        '<div class="ao-banner-tt">Human approved</div>'
+                        '<div class="ao-banner-ds">On-call engineer signed off — actions executed under human authority.</div>'
+                        '</div></div>'
+                    )
+                elif hd == "rejected":
+                    md(
+                        '<div class="ao-banner red">'
+                        '<div class="ao-banner-ic">✕</div>'
+                        '<div>'
+                        '<div class="ao-banner-tt">Human rejected</div>'
+                        '<div class="ao-banner-ds">Plan halted by on-call engineer. Incident handed off.</div>'
+                        '</div></div>'
+                    )
+                if st.button("↺ Revise decision", key=f"hitl_revise_{ss.run_token}"):
+                    ss.hitl_decision = None
+                    ss.run_token += 1
+                    st.rerun()
 
         elif stage == "audit":
             md(f'<span class="ao-pill">📂 {_esc(out["audit_log_path"])}</span>')
